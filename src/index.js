@@ -1,120 +1,90 @@
 import ReactDOM from 'react-dom';
 import {useState} from 'react';
+import AddTodo from './AddTodo';
+import DisplayTodo from './DisplayTodo';
+
+const Filter=(props)=>{
+
+  const [addFilter,setAddFilter]=useState(false);
+  const [priority,setPriority]=useState('none');
+  const [startDueDate,setStartDueDate]=useState();
+  const [endDueDate,setEndDueDate]=useState();
+
+  const filterHandler=()=>{
+    setAddFilter(true);
+    
+  }
+  const applyFilterHandler=()=>{
+    setAddFilter(false);
+    props.applyFilter(startDueDate,endDueDate,priority);
+    
+  }
+  const priorityHandler=(e)=>{
+    setPriority(e.target.value);
+  }
+  const startDueDateHandler=(e)=>{
+    setStartDueDate(e.target.value);
+  }
+  const endDueDateHandler=(e)=>{
+    setEndDueDate(e.target.value);
+  }
+
+  return (
+    <>
+      <button onClick={filterHandler}>Add Filter</button>
+      <br />
+      {addFilter && (<>
+        <label htmlFor='Start due date'>Start due date</label>
+      <input type='date' onChange={startDueDateHandler}/>
+      <label htmlFor='End due date'>End due date</label>
+      <input type='date' onChange={endDueDateHandler}/>
+      <br />
+      <button htmlFor="option">Select Priority:</button>
+      <select id="option" name="option" onChange={priorityHandler}>
+          <option value="none" >None</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+      </select>
+      <button onClick={applyFilterHandler}>Apply Filter</button>
+      </>)}   
+    </>
+  );
+}
 
 function App(){
-  const [item,setItem]=useState('');
   const [todos,setTodos]=useState([]);
-  const [id,setId]=useState(0);
   const [searchText,setSearchText]=useState('');
-  // const [edit,setEdit]=useState(false);
-  // const [editValue,setEditValue]=useState('');
+  const [filter,setFilter]=useState({});
 
-  const changeHandler=(e)=>{
-    setItem(e.target.value);
-  }
-  const clickHandler=()=>{
-    setTodos([...todos,{text:item,id:id,edit:false,editValue:'',complete:'incomplete'}]);
-    setId(+id+1);
-    setItem('');
-  }
 
-  const deleteHandler=(e)=>{
-    const id=e.target.parentNode.id;
-    const new_todos=todos.filter(todo=>{
-      return todo.id!=id;
-    })
-    //console.log(new_todos);
-    setTodos(new_todos);
-  }
-  const editHandler=(e)=>{
-    //console.log('yes');
-    //console.log(e.target.parentNode.id);
-
-    const id=e.target.parentNode.id;
-    
-    const new_todos=[...todos];
-    new_todos.forEach(todo=>{
-      if(todo.id==id){
-        todo.edit=true;
-      }
-    })
-    //console.log(new_todos);
-    setTodos(new_todos);
-  }
-  const saveButtonHandler=(e)=>{
-    const id=e.target.parentNode.parentNode.id;
-    const new_todos=[...todos];
-    new_todos.forEach(todo=>{
-      if(todo.id==id){
-        todo.edit=false;
-        todo.text=todo.editValue;
-      }
-    })
-    setTodos(new_todos);
-    //console.log(editValue);
-  }
-  const editTextHandler=(e)=>{
-    const id=e.target.parentNode.parentNode.id;
-   // console.log(id);
-    const new_todos=[...todos];
-    new_todos.forEach(todo=>{
-      if(todo.id==id){
-        todo.editValue=e.target.value;
-      }
-    })
-    setTodos(new_todos);
+  const addHandler=(item,id)=>{
+    setTodos([...todos,{text:item,id:id,edit:false,editValue:'',complete:'incomplete',priority:'none',dueDate:'add due date'}]);
   }
   const searchHandler=(e)=>{
     setSearchText(e.target.value);
   }
-  const todoSearch=(text)=>{
-    const regex=new RegExp(searchText);
-    return regex.test(text);
-  }
-  const completeHandler=(e)=>{
-    const id=e.target.parentNode.id;
-    //console.log(id);
-    const new_todos=[... todos];
-    new_todos.forEach(todo=>{
-      if(id==todo.id){
-        if(todo.complete=='complete'){
-          todo.complete='incomplete';
-        }
-        else{
-          todo.complete='complete';
-        }
-      }
-    })
+  const changeTodo=(new_todos)=>{
     setTodos(new_todos);
   }
-
+  const applyFilter=(startDueDate,endDueDate,priority)=>{
+    //const filter=;
+    //console.log(filter);
+    setFilter({
+      startDueDate,endDueDate,priority
+    });
+  }
 
   return(
     <>
-      <div>
-      <input type='text' onChange={changeHandler} value={item}/>
-      <br />
-      <button onClick={clickHandler}>Add todo</button>
-      </div>
-
+      <AddTodo add={addHandler} filterHandler={applyFilter}/>
       <input type='Text' placeholder='Search todo' value={searchText} onChange={searchHandler}/>
-      <ul>
-        {todos.map((todo)=>{
-          if(!todoSearch(todo.text)) return ''; 
-          return (<div key={todo.id} id={todo.id} >
-            {!todo.edit&& <li onClick={editHandler}>{todo.text}</li>}
-            {todo.edit &&(
-      <div>
-        <input type='text' value={todo.editValue} onChange={editTextHandler}/>
-        <button onClick={saveButtonHandler}>Save</button>
-      </div>
-    )}
-            <button onClick={deleteHandler}>Delete</button>
-            <button onClick={completeHandler}>{todo.complete}</button>
-            </div>);
-        })}
-      </ul>
+      <Filter applyFilter={applyFilter}/>
+      
+      <DisplayTodo array={todos} changeTodo={changeTodo} search={searchText} filter={filter}/>
     </>
   );
 }
+
+
 ReactDOM.render(<App />, document.getElementById('root'));
